@@ -35,6 +35,16 @@ def roll_dice(num_rolls, dice=six_sided):
     return score
     # END PROBLEM 1
 
+def bit_num(num, bit):
+    """
+    """
+    assert bit >= 0, 'cannot be a negative bit.'
+    i, bn = 0, 0
+    while i <= bit:
+        bn = num % 10
+        num = num // 10
+        i += 1
+    return bn
 
 def boar_brawl(player_score, opponent_score):
     """Return the points scored by rolling 0 dice according to Boar Brawl.
@@ -45,8 +55,8 @@ def boar_brawl(player_score, opponent_score):
     """
     # BEGIN PROBLEM 2
     "*** YOUR CODE HERE ***"
+    return max(abs(abs(bit_num(player_score, 0)) - abs(bit_num(opponent_score, 1)))*3, 1)
     # END PROBLEM 2
-
 
 def take_turn(num_rolls, player_score, opponent_score, dice=six_sided):
     """Return the points scored on a turn rolling NUM_ROLLS dice when the
