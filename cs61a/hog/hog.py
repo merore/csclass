@@ -243,6 +243,16 @@ def is_always_roll(strategy, goal=GOAL):
     """
     # BEGIN PROBLEM 7
     "*** YOUR CODE HERE ***"
+    score0, score1 = 0, 0
+    init_num = strategy(score0, score1)
+    while score0 < goal:
+        score1 = 0
+        while score1 < goal:
+            if init_num != strategy(score0, score1):
+                return False
+            score1 += 1
+        score0 += 1
+    return True
     # END PROBLEM 7
 
 
