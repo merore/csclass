@@ -11,6 +11,12 @@ def falling(n, k):
     1
     """
     "*** YOUR CODE HERE ***"
+    result = 1
+    while k != 0:
+        result = result * n
+        k -= 1
+        n -= 1
+    return result
 
 
 def divisible_by_k(n, k):
@@ -34,6 +40,16 @@ def divisible_by_k(n, k):
     0
     """
     "*** YOUR CODE HERE ***"
+    divisible = lambda m : m % k == 0
+
+    i = 1
+    count = 0
+    while i <= n:
+        if divisible(i):
+            print(i)
+            count += 1
+        i += 1
+    return count
 
 
 def sum_digits(y):
@@ -50,6 +66,13 @@ def sum_digits(y):
     6
     """
     "*** YOUR CODE HERE ***"
+    count = 0
+    while y != 0:
+        digit = y % 10
+        y = y // 10
+        count += digit
+    return count
+
 
 
 def double_eights(n):
@@ -68,4 +91,11 @@ def double_eights(n):
     False
     """
     "*** YOUR CODE HERE ***"
+    def end_eights(m):
+        return m % 100 == 88
 
+    while n != 0:
+        if end_eights(n):
+            return True
+        n = n // 10
+    return False
