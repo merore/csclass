@@ -32,6 +32,7 @@ def product(n, term):
     162
     """
     "*** YOUR CODE HERE ***"
+    return accumulate(mul, 1, n, term)
 
 
 def accumulate(fuse, start, n, term):
@@ -54,6 +55,13 @@ def accumulate(fuse, start, n, term):
     19
     """
     "*** YOUR CODE HERE ***"
+    def rescu(fuse, i, n, term):
+        if i == n:
+            return term(n)
+        return fuse(term(i), rescu(fuse, i+1, n, term))
+    if n == 0:
+        return start
+    return fuse(start, rescu(fuse, 1, n, term))
 
 
 def summation_using_accumulate(n, term):
@@ -68,7 +76,7 @@ def summation_using_accumulate(n, term):
     >>> [type(x).__name__ for x in ast.parse(inspect.getsource(summation_using_accumulate)).body[0].body]
     ['Expr', 'Return']
     """
-    return ____
+    return accumulate(add, 0, n, term)
 
 
 def product_using_accumulate(n, term):
@@ -83,7 +91,7 @@ def product_using_accumulate(n, term):
     >>> [type(x).__name__ for x in ast.parse(inspect.getsource(product_using_accumulate)).body[0].body]
     ['Expr', 'Return']
     """
-    return ____
+    return accumulate(mul, 1, n, term)
 
 
 def make_repeater(f, n):
@@ -100,6 +108,9 @@ def make_repeater(f, n):
     390625
     """
     "*** YOUR CODE HERE ***"
+    if n == 1:
+        return f
+    return lambda x: f(make_repeater(f, n-1)(x))
 
 
 def digit_distance(n):
@@ -122,6 +133,13 @@ def digit_distance(n):
     True
     """
     "*** YOUR CODE HERE ***"
+    def recursion(n):
+        if n < 10:
+            return 0, n
+        count, last = recursion(n//10)
+        return abs(n % 10 - last) + count, n % 10
+    count, last = recursion(n)
+    return count
 
 
 def interleaved_sum(n, odd_func, even_func):
@@ -146,6 +164,13 @@ def interleaved_sum(n, odd_func, even_func):
     True
     """
     "*** YOUR CODE HERE ***"
+    def inter(k):
+        if k == n:
+            return odd_func(k)
+        if k > n:
+            return 0
+        return odd_func(k) + even_func(k+1) + inter(k+2)
+    return inter(1)
 
 
 def next_larger_coin(coin):
@@ -182,6 +207,22 @@ def next_smaller_coin(coin):
     elif coin == 5:
         return 1
 
+
+def smaller_coin(n):
+    if n >= 25:
+        return 25
+    elif n >= 10:
+        return 10
+    elif n >= 5:
+        return 5
+    return 1
+
+def min_split(total, k):
+    m = total
+    if m > k:
+        m = k
+    return smaller_coin(m)
+
 def count_coins(total):
     """Return the number of ways to make change using coins of value of 1, 5, 10, 25.
     >>> count_coins(15)
@@ -200,4 +241,10 @@ def count_coins(total):
     True
     """
     "*** YOUR CODE HERE ***"
+    def count_coins_with(total, k):
+        print("DEBUG:", total, k)
+        if k == 1:
+            return 1
+        return count_coins_with(total - k, min_split(total - k, k)) + count_coins_with(total, next_smaller_coin(k))
 
+    return count_coins_with(total, smaller_coin(total))
