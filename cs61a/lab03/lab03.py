@@ -23,6 +23,16 @@ def double_eights(n):
     True
     """
     "*** YOUR CODE HERE ***"
+    def eight(n):
+        if n < 10:
+            return False, n
+
+        x = n % 10
+        has, last = eight(n // 10)
+        return has or (last == x and x == 8), x
+    
+    has, _ = eight(n)
+    return has
 
 
 def make_onion(f, g):
@@ -51,11 +61,11 @@ def make_onion(f, g):
     """
     def can_reach(x, y, limit):
         if limit < 0:
-            return ____
+            return False
         elif x == y:
-            return ____
+            return True
         else:
-            return can_reach(____, ____, limit - 1) or can_reach(____, ____, limit - 1)
+            return can_reach(f(x), y, limit - 1) or can_reach(g(x), y, limit - 1)
     return can_reach
 
 
@@ -82,6 +92,13 @@ def mario_number(level):
     180
     """
     "*** YOUR CODE HERE ***"
+    if len(level) <= 0:
+        return 0
+    elif len(level) == 1:
+        return 1
+    if level[0] == 'P':
+        return 0
+    return mario_number(level[1:]) + mario_number(level[2:])
 
 
 def max_subseq(n, t):
@@ -117,6 +134,28 @@ def max_subseq(n, t):
     """
     "*** YOUR CODE HERE ***"
 
+    if t == 0:
+        return 0
+    if n == 0:
+        return 0
+    if digit_num(n) <= t:
+        return n
+    mss = 0 # max value
+    while n != 0:
+        tmp = max_subseq(n//10, t-1) * 10 + n % 10
+        if tmp > mss:
+            mss = tmp
+        n = n // 10
+    return mss
+
+def digit_num(n):
+    if n == 0:
+        return 1
+    num = 0
+    while n != 0:
+        n = n // 10
+        num += 1
+    return num
 
 def is_prime(n):
     """
@@ -128,4 +167,12 @@ def is_prime(n):
     False
     """
     "*** YOUR CODE HERE ***"
+    def divisible_by(n, i):
+        if i <= 1:
+            return True
+        return n % i != 0 and divisible_by(n, i-1)
+
+    if n == 1:
+        return False
+    return divisible_by(n, n-1)
 
