@@ -1,3 +1,5 @@
+from tree import *
+
 def insect_combinatorics(m, n):
     """在一个 (m,n) 的网格里，一只昆虫从左下角
     开始往右上角爬，每次只能向上或向右，一共有多
@@ -60,8 +62,8 @@ def has_path(t, p):
     t = [x, [...]]
     p = [1,2,3,4]
 
-    >>> t2 = [5, [[6, []], [7, []]]]
-    >>> t1 = [3, [[4, []], t2]]
+    >>> t2 = tree(5, [tree(6), tree(7)])
+    >>> t1 = tree(3, [tree(4), t2])
     >>> has_path(t1, [5,6])
     False
     >>> has_path(t2, [5, 6])        # This path is from the root of t2
@@ -73,15 +75,15 @@ def has_path(t, p):
     >>> has_path(t1, [3, 4, 5, 6])  # There is no path with these labels
     False
     """
-    if t[0] != p[0]:
+    if label(t) != p[0]:
         return False
 
     # 没有到子节点，不查询了
     if len(p) == 1:
         return True
 
-    for tree in t[1]:
-        if has_path(tree, p[1:]):
+    for branch in branches(t):
+        if has_path(branch, p[1:]):
             return True
 
     return False
@@ -92,8 +94,8 @@ def find_path(t, x):
     为什么这个函数可以不使用 if_leaf?
     因为循环本身代替了 if_leaf 的功能，和 has_path 一样
 
-    >>> t2 = [5, [[6, []], [7, []]]]
-    >>> t1 = [3, [[4, []], t2]]
+    >>> t2 = tree(5, [tree(6), tree(7)])
+    >>> t1 = tree(3, [tree(4), t2])
     >>> find_path(t1, 5)
     [3, 5]
     >>> find_path(t1, 4)
@@ -105,29 +107,59 @@ def find_path(t, x):
     >>> print(find_path(t1, 2))
     None
     """
-    if t[0] == x:
+    if label(t) == x:
         return [x]
 
-    for tree in t[1]:
-        p = find_path(tree, x)
+    for branch in branches(t):
+        p = find_path(branch, x)
         if p != None:
-            return [t[0]] + p
+            return [label(t)] + p
 
     return None
 
 def sprout_leaves(t, leaves):
     """
-    >>> t3=[3, [[4,[]]]]
-    >>> t2=[2,[]]
-    >>> t1=[1,[t2, t3]]
-    >>> sprout_leaves(t1, [5,6])
+    >>> t1 = tree(1, [tree(2), tree(3)])
+    >>> print_tree(t1)
+    1
+      2
+      3
+    >>> new1 = sprout_leaves(t1, [4, 5])
+    >>> print_tree(new1)
+    1
+      2
+        4
+        5
+      3
+        4
+        5
+
+    >>> t2 = tree(1, [tree(2, [tree(3)])])
+    >>> print_tree(t2)
+    1
+      2
+        3
+    >>> new2 = sprout_leaves(t2, [6, 1, 2])
+    >>> print_tree(new2)
+    1
+      2
+        3
+          6
+          1
+          2
     """
-    nt = [t[0], []]
-    if len(t[1]) == 0:
-        nt[1] = leaves
+    def append_tree(root, branch):
+        bs = branches(root)
+        bs = bs + [branch]
+        return tree(label(root), bs)
+
+    # 这里应该构造一个新的树，而不是使用 nt = t，否则会造成子节点重复
+    nt = tree(label(t))
+    if is_leaf(t):
+        for leaf in leaves:
+            nt = append_tree(nt, tree(leaf))
         return nt
 
-    for tree in t[1]:
-        nt[1] = nt[1] + sprout_leaves(tree, leaves)
-
+    for branch in branches(t):
+        nt = append_tree(nt, sprout_leaves(branch, leaves))
     return nt
