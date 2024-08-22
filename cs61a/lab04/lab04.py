@@ -17,6 +17,15 @@ def flatten(s):
     """
     "*** YOUR CODE HERE ***"
 
+    ns = []
+    for e in s:
+        if type(e) == list:
+            ns = ns + flatten(e)
+        else:
+            ns = ns + [e]
+    return ns
+
+
 
 def merge(s, t):
     """Merges two sorted lists.
@@ -42,6 +51,29 @@ def merge(s, t):
     True
     """
     "*** YOUR CODE HERE ***"
+    
+    """
+    递归合并，merge(s, t) 返回一个新列表 ns
+    判断 s[0] 和 t[0]，ns 追加小的那一个，然后 ns 再追加 merge(s,t)
+    一旦 s 长度为 0，ns 追加 t 并返回，反之亦然
+    """
+
+    ns = []
+    if len(s) == 0:
+        ns = ns + t
+        return ns
+    if len(t) == 0:
+        ns = ns + s
+        return ns
+
+    if s[0] <= t[0]:
+        ns = ns + [s[0]]
+        ns = ns + merge(s[1:], t)
+    else:
+        ns = ns + [t[0]]
+        ns = ns + merge(s, t[1:])
+
+    return ns
 
 
 def size_of_tree(t):
@@ -59,6 +91,18 @@ def size_of_tree(t):
     7
     """
     "*** YOUR CODE HERE ***"
+
+    """
+    一个数的大小，是所有子树和 +1
+    f(t) = f(child 1) + ... f(child n) + 1
+    当 t 为子节点时，返回 1
+    因为当 t 为子节点时，branches(t) 为空不会循环，所以可忽略
+    """
+    n = 1
+    for branch in branches(t):
+        n += size_of_tree(branch)
+
+    return n
 
 
 def replace_loki_at_leaf(t, lokis_replacement):
@@ -92,6 +136,26 @@ def replace_loki_at_leaf(t, lokis_replacement):
     """
     "*** YOUR CODE HERE ***"
 
+    """
+    replace_loki_at_leaf 返回一棵新树 nt，新树的所有子树等于递归各个子数
+    如果 t 是叶子节点，判断替换并返回新树
+    """
+    if is_leaf(t) and label(t) == 'loki':
+        return tree(lokis_replacement)
+
+    nbranches = []
+
+    for branch in branches(t):
+        """
+        nbranches += replace_loki_at_leaf(branch, lokis_replacement)
+        replace_loki_at_leaf  返回子树的时候，应该用 [] 扩起来，否则
+        子树在 + 的时候是扩展的
+        """
+        nbranches += [replace_loki_at_leaf(branch, lokis_replacement)]
+
+    return tree(label(t), nbranches)
+
+
 
 def divide(quotients, divisors):
     """Return a dictonary in which each quotient q is a key for the list of
@@ -102,7 +166,7 @@ def divide(quotients, divisors):
     >>> divide(range(1, 5), range(20, 25))
     {1: [20, 21, 22, 23, 24], 2: [20, 22, 24], 3: [21, 24], 4: [20, 24]}
     """
-    return {____: ____ for ____ in ____}
+    return {x:[y for y in divisors if y % x == 0] for x in quotients}
 
 
 
