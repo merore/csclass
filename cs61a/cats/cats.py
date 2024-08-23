@@ -37,6 +37,14 @@ def pick(paragraphs, select, k):
     """
     # BEGIN PROBLEM 1
     "*** YOUR CODE HERE ***"
+    i = -1
+    for paragraph in paragraphs:
+        if select(paragraph):
+            i += 1
+            if i == k:
+                return paragraph
+    return ''
+            
     # END PROBLEM 1
 
 
@@ -57,6 +65,17 @@ def about(subject):
 
     # BEGIN PROBLEM 2
     "*** YOUR CODE HERE ***"
+    def fn(paragraph):
+        s = remove_punctuation(paragraph)
+        words = split(lower(s))
+
+        for word in words:
+            for sub in subject:
+                if word == sub:
+                    return True
+        return False
+
+    return fn
     # END PROBLEM 2
 
 
@@ -87,6 +106,23 @@ def accuracy(typed, source):
     source_words = split(source)
     # BEGIN PROBLEM 3
     "*** YOUR CODE HERE ***"
+    typed = typed.replace('\t', '') # 删除 \t
+    typed_words = split(typed)
+    source_words = split(source)
+
+    typed = len(typed_words)
+    matched = 0
+
+    for i in range(min(len(typed_words), len(source_words))):
+        if typed_words[i] == source_words[i]:
+            matched += 1
+
+    if len(typed_words) == 0 and len(source_words) == 0: # accuracy('', '') 100.0
+        return float(100)
+    if typed == 0 or matched == 0:
+        return float(0)
+
+    return float((matched/typed) * 100)
     # END PROBLEM 3
 
 
@@ -105,6 +141,9 @@ def wpm(typed, elapsed):
     assert elapsed > 0, "Elapsed time must be positive"
     # BEGIN PROBLEM 4
     "*** YOUR CODE HERE ***"
+    word_length = 5
+    words = len(typed) / word_length
+    return float((words / elapsed) * 60)
     # END PROBLEM 4
 
 
@@ -135,6 +174,14 @@ def memo_diff(diff_function):
     def memoized(typed, source, limit):
         # BEGIN PROBLEM EC
         "*** YOUR CODE HERE ***"
+        immutable_args = (typed, source)
+        
+        if immutable_args in cache and cache[immutable_args][1] >= limit:
+            return cache[immutable_args][0]
+
+        result = diff_function(typed, source, limit)
+        cache[immutable_args] = (result, limit)
+        return result
         # END PROBLEM EC
 
     return memoized
@@ -144,7 +191,7 @@ def memo_diff(diff_function):
 # Phase 2 #
 ###########
 
-
+@memo
 def autocorrect(typed_word, word_list, diff_function, limit):
     """Returns the element of WORD_LIST that has the smallest difference
     from TYPED_WORD based on DIFF_FUNCTION. If multiple words are tied for the smallest difference,
@@ -166,6 +213,30 @@ def autocorrect(typed_word, word_list, diff_function, limit):
     """
     # BEGIN PROBLEM 5
     "*** YOUR CODE HERE ***"
+    """
+    记录最小 diff min_diff 和最小 diff 的下标 min_idx，循环 word_list
+    初始条件：min_dix = -1
+    循环：if diff > limit continue，else if min_idx == -1 or diff < min_diff update min
+    例外：typed_word == word_list[i]
+    """
+    min_idx = -1
+    min_diff = 0
+
+    for i in range(len(word_list)):
+        # 例外
+        if typed_word == word_list[i]:
+            return typed_word
+
+        diff = diff_function(typed_word, word_list[i], limit)
+        if diff > limit:
+            continue
+        elif min_idx == -1 or diff < min_diff:
+            min_idx = i
+            min_diff = diff
+    if min_idx == -1:
+        return typed_word
+
+    return word_list[min_idx]        
     # END PROBLEM 5
 
 
@@ -192,10 +263,30 @@ def furry_fixes(typed, source, limit):
     5
     """
     # BEGIN PROBLEM 6
-    assert False, 'Remove this line'
+    """
+    使用递归计算差异值
+    1. 按字母计算
+    2. 最终差值 + 长度差异
+    3. 当差异达到 limit 时，直接返回差异值
+    递归实现
+    1. f(word, source, limit) = word[0] != source[0] + f(word[1:], source[1:], limit?)
+    特殊条件
+    当 word 和 source 均为空，返回 0
+    当 word 或 source 为空时，返回 abs(len)
+    当 limit 为 -1 时，返回 1，这个含义是已经出现最大修正了，当再次出现错误时，直接返回
+    """
+    if len(typed) == 0 and len(source) == 0:
+        return 0
+    if len(typed) == 0 or len(source) == 0:
+        return abs(len(typed) - len(source))
+    if limit == -1:
+        return 1
+
+    fix = 1 if typed[0] != source[0] else 0
+    return fix + furry_fixes(typed[1:], source[1:], limit - fix)
     # END PROBLEM 6
 
-
+@memo_diff
 def minimum_mewtations(typed, source, limit):
     """A diff function for autocorrect that computes the edit distance from TYPED to SOURCE.
     This function takes in a string TYPED, a string SOURCE, and a number LIMIT.
@@ -213,23 +304,47 @@ def minimum_mewtations(typed, source, limit):
     >>> minimum_mewtations("ckiteus", "kittens", big_limit) # ckiteus -> kiteus -> kitteus -> kittens
     3
     """
-    assert False, 'Remove this line'
-    if ___________: # Base cases should go here, you may add more base cases as needed.
-        # BEGIN
-        "*** YOUR CODE HERE ***"
-        # END
-    # Recursive cases should go below here
-    if ___________: # Feel free to remove or add additional cases
-        # BEGIN
-        "*** YOUR CODE HERE ***"
-        # END
+
+    """
+    if typed[0] == source[0]，无需修改，f = f(typed[1:], source[1:], limit)
+    
+    f = 1 + f(typed[1:], source[1:], limit) # subsitute
+    f = 1 + f(typed[0:], source[1:], limit) # add
+    f = 1 + f(typed[1:], source[0:], limit) # remove
+
+    if len(typed) == len(source) == 0; return 0
+    if len(typed) == 0 or len(typed) == 0; return abs(len-len);
+    if limit == -1; return 1
+    """
+    
+    # base case
+    # 这个逻辑被下边的逻辑包含
+    #if len(typed) == 0 and len(source) == 0:
+    #    return 0
+    if typed == source:
+        return 0
+    if len(typed) == 0 or len(source) == 0:
+        return abs(len(typed) - len(source))
+    # 优化，当长度相差过大时，直接返回 limit + 1
+    if abs(len(typed) - len(source)) > limit:
+        return limit + 1
+    if limit == 0:
+        return 1 
+
+    # recursive
+    if typed[0] == source[0]:
+        return minimum_mewtations(typed[1:], source[1:], limit)
+    elif limit == 0: # 优化，当 limit 为 0 时，表示不可修改
+        return 1
     else:
-        add = ... # Fill in these lines
-        remove = ...
-        substitute = ...
-        # BEGIN
-        "*** YOUR CODE HERE ***"
-        # END
+        add = minimum_mewtations(typed, source[1:], limit - 1)
+        if add == 0: # 优化，如果增加一个之后修复成功，不再尝试其他方法
+            return 1
+        remove = minimum_mewtations(typed[1:], source, limit - 1)
+        if remove == 0: # 优化，如果删除一个之后修复成功，不再尝试其他方法
+            return 1
+        substitute = minimum_mewtations(typed[1:], source[1:], limit - 1)
+    return 1 + min(add, remove, substitute)
 
 
 # Ignore the line below
@@ -275,6 +390,15 @@ def report_progress(typed, source, user_id, upload):
     """
     # BEGIN PROBLEM 8
     "*** YOUR CODE HERE ***"
+    matched = 0
+    for word in source:
+        if matched < len(typed) and typed[matched] == word:
+            matched += 1
+        else:
+            break
+    progress = float(matched / len(source))
+    upload({"id": user_id, "progress": progress})
+    return progress
     # END PROBLEM 8
 
 
@@ -298,6 +422,14 @@ def time_per_word(words, timestamps_per_player):
     """
     # BEGIN PROBLEM 9
     "*** YOUR CODE HERE ***"
+    def fn(ts):
+            if len(ts) <= 1:
+                return []
+            return [ts[1] - ts[0]] + fn(ts[1:])
+    times = []
+    for ts in timestamps_per_player:
+            times += [fn(ts)]
+    return words, times
     # END PROBLEM 9
 
 
@@ -319,6 +451,8 @@ def time_per_word_match(words, timestamps_per_player):
     """
     # BEGIN PROBLEM 10
     "*** YOUR CODE HERE ***"
+    words, times = time_per_word(words, timestamps_per_player)
+    return match(words, times)
     # END PROBLEM 10
 
 
@@ -341,6 +475,22 @@ def fastest_words(match_object):
     word_indices = range(len(get_all_words(match_object)))  # contains an *index* for each word
     # BEGIN PROBLEM 11
     "*** YOUR CODE HERE ***"
+    words = get_all_words(match_object)
+    times = get_all_times(match_object)
+
+    fwords = []
+    for i in range(len(times)):
+        fwords += [[]]
+
+    for wi in range(len(words)):
+        fastest = 0
+        for ti in range(len(times)):
+           print('DEBUG: wi: %d, ti: %d' % (wi, ti))
+           if get_time(match_object, fastest, wi) > get_time(match_object, ti, wi):
+               fastest = ti
+        fwords[fastest] += [words[wi]]
+
+    return fwords
     # END PROBLEM 11
 
 
