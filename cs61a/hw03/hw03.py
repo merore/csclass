@@ -1,5 +1,15 @@
 HW_SOURCE_FILE=__file__
 
+def pascal_cache(pascal_func):
+    cache = {}
+
+    def decorate(row, column):
+        key = (row, column)
+        if key not in cache:
+            cache[key] = pascal_func(row, column)
+
+        return cache[key]
+    return decorate
 
 def pascal(row, column):
     """Returns the value of the item in Pascal's Triangle
@@ -14,6 +24,16 @@ def pascal(row, column):
     6
     """
     "*** YOUR CODE HERE ***"
+    if row < column:
+        return 0
+    if row == column:
+        return 1
+    if column == 0:
+        return 1
+    
+    return pascal(row-1, column-1) + pascal(row-1, column)
+
+
 
 
 def insert_items(s, before, after):
@@ -42,6 +62,18 @@ def insert_items(s, before, after):
     True
     """
     "*** YOUR CODE HERE ***"
+    length = len(s)
+    index = 0
+    while index < length:
+        if s[index] != before:
+            index += 1
+            continue
+        s.insert(index + 1, after)
+        index += 2 # 跳过插入的值
+        length +=1
+
+    return s
+        
 
 
 HW_SOURCE_FILE=__file__
@@ -51,11 +83,13 @@ def planet(mass):
     """Construct a planet of some mass."""
     assert mass > 0
     "*** YOUR CODE HERE ***"
+    return ['planet', mass]
 
 def mass(p):
     """Select the mass of a planet."""
     assert is_planet(p), 'must call mass on a planet'
     "*** YOUR CODE HERE ***"
+    return p[1]
 
 def is_planet(p):
     """Whether p is a planet."""
@@ -109,6 +143,25 @@ def balanced(m):
     """
     "*** YOUR CODE HERE ***"
 
+    """
+    判断一个 mobile 是否左右平衡
+    if left arm is mobile, balanced(left)
+    if right arm is mobile, balanced(right)
+
+    left-length * total_mass == right-length * total_mass
+    """
+   
+    if is_mobile(end(left(m))) and not balanced(end(left(m))):
+        return False
+    if is_mobile(end(right(m))) and not balanced(end(right(m))):
+        return False
+    
+    return length(left(m)) * total_mass(end(left(m))) == length(right(m)) * total_mass(end(right(m)))
+    print(total_mass(end(left(m))))
+    print(total_mass(end(right(m))))
+
+    return total_mass(end(left(m))) == total_mass(end(right(m)))
+
 
 def berry_finder(t):
     """Returns True if t contains a node with the value 'berry' and 
@@ -128,6 +181,13 @@ def berry_finder(t):
     True
     """
     "*** YOUR CODE HERE ***"
+    if label(t) == 'berry':
+        return True
+    for branch in branches(t):
+        if berry_finder(branch):
+            return True
+
+    return False
 
 
 HW_SOURCE_FILE=__file__
@@ -144,6 +204,13 @@ def max_path_sum(t):
     """
     "*** YOUR CODE HERE ***"
 
+    max_sum = 0
+    for branch in branches(t):
+        branch_sum = max_path_sum(branch)
+        if branch_sum > max_sum:
+            max_sum = branch_sum
+
+    return label(t) + max_sum
 
 def print_move(origin, destination):
     """Print instructions to move a disk."""
@@ -178,6 +245,12 @@ def move_stack(n, start, end):
     """
     assert 1 <= start <= 3 and 1 <= end <= 3 and start != end, "Bad start/end"
     "*** YOUR CODE HERE ***"
+    if n == 0:
+        return
+    mid = 6 - (start+end)
+    move_stack(n-1, start, mid)
+    print_move(start, end)
+    move_stack(n-1, mid, end)
 
 
 from operator import sub, mul
@@ -193,7 +266,40 @@ def make_anonymous_factorial():
     ...     ['Assign', 'AnnAssign', 'AugAssign', 'NamedExpr', 'FunctionDef', 'Recursion'])
     True
     """
-    return 'YOUR_EXPRESSION_HERE'
+    #return 'YOUR_EXPRESSION_HERE'
+    """
+    先写成实名函数的形式
+
+    def f():
+        def g(x):
+            if x == 1:
+                return 1
+            else:
+                return x*g(x-1)
+
+        return g
+
+    要实现一个匿名函数，就是把 g 函数隐藏掉，通过一个函数
+
+    通过 f 本身来实现 g，g(x) = f(f, x)
+
+    def f(f, x):
+        if x == 1:
+            return 1
+        else:
+            return x*f(f, x-1)
+
+    最终我们要得到一个 g(x) 函数，这个函数应该由传入一个 f 函数得到
+
+    g(x) = lambda f: lambda x: f(f,x)
+
+    传入的 f 函数应该是 lambda f,x: 1: if x == 1 else x*f(f, x-1)
+
+    (lambda f: lambda x: f(f,x))(lambda f, x: 1 if x == 1 else x*f(f, x-1))
+    
+    """
+
+    return (lambda f: lambda x: f(f,x))(lambda f,x: 1 if x ==1 else x*f(f,x-1))
 
 
 def mobile(left, right):
