@@ -9,8 +9,27 @@ def hailstone(n):
     1
     """
     "*** YOUR CODE HERE ***"
+    while True:
+      yield n
+      if n == 1:
+        n = 1
+      elif n % 2 == 0:
+        n = n // 2
+      else:
+        n = n * 3 + 1
 
+def filter(f):
+  def filter_merge(*args):
+    orig_iter = f(*args)
+    last = None
+    for e in orig_iter:
+      if e != last:
+        last = e
+        yield e
 
+  return filter_merge
+
+@filter
 def merge(a, b):
     """Q2:
     >>> def sequence(start, step):
@@ -24,7 +43,31 @@ def merge(a, b):
     [2, 3, 5, 7, 8, 9, 11, 13, 14, 15]
     """
     "*** YOUR CODE HERE ***"
+    """
+    value_a 代表 保留的数字
+    a 代表保留数字的迭代器
+    b 代表 保留的迭代器
 
+    如果 value_a 小于 value_b
+      pop(value_a)
+      value_a = value_b
+      swap(a, b)
+    如果 value_a 大于 values_b
+      pop(values_b)
+    """
+    value_a = next(a)
+    value_pop = value_a
+    while True:
+      value_b = next(b)
+      if value_a < value_b:
+        value_pop = value_a
+        value_a = value_b
+        a, b = b, a
+      else:
+        value_pop = value_b
+
+      print("DEBUG: ", value_a, value_b)
+      yield value_pop
 
 def yield_paths(t, value):
     """Q4: Yields all possible paths from the root of t to a node with the label
@@ -61,11 +104,10 @@ def yield_paths(t, value):
     [[0, 2], [0, 2, 1, 2]]
     """
     if label(t) == value:
-        yield ____
+        yield [value]
     for b in branches(t):
-        for ____ in ____:
-            yield ____
-
+        for p in yield_paths(b, value):
+            yield [label(t)] + p
 
 
 # Tree Data Abstraction
