@@ -48,8 +48,39 @@ class VendingMachine:
     'Here is your soda.'
     """
     "*** YOUR CODE HERE ***"
+    def __init__(self, product_name, product_price):
+        self.product_name = product_name
+        self.product_price = product_price
+        self.product_amount = 0
+        self.funds = 0
+    
+    def add_funds(self,money):
+        self.funds += money
+        if self.product_amount == 0:
+            self.funds -= money
+            return 'Nothing left to vend. Please restock. Here is your ${}.'.format(money)
+        else:
+            return 'Current balance: ${}'.format(self.funds)
 
-
+    def vend(self):
+        if self.product_amount == 0:
+            return 'Nothing left to vend. Please restock.'
+        elif self.funds < self.product_price:
+            return 'Please add ${} more funds.'.format(self.product_price - self.funds)
+        elif self.funds == self.product_price:
+            self.product_amount -= 1
+            self.funds = 0
+            return 'Here is your {}.'.format(self.product_name)
+        else:
+            self.product_amount -= 1
+            change = self.funds - self.product_price
+            self.funds = 0
+            return 'Here is your {} and ${} change.'.format(self.product_name, change)
+     
+    def restock(self, amount):
+        self.product_amount += amount
+        return 'Current {} stock: {}'.format(self.product_name, self.product_amount)
+    
 def store_digits(n):
     """Stores the digits of a positive number n in a linked list.
 
@@ -69,6 +100,13 @@ def store_digits(n):
     """
     "*** YOUR CODE HERE ***"
 
+    last_link = () 
+    while n != 0:
+        digit = n % 10
+        n = n // 10
+        link = Link(digit, last_link)
+        last_link = link
+    return last_link
 
 def deep_map_mut(func, lnk):
     """Mutates a deep link lnk by replacing each item found with the
@@ -90,6 +128,14 @@ def deep_map_mut(func, lnk):
     <9 <16> 25 36>
     """
     "*** YOUR CODE HERE ***"
+    if isinstance(lnk.first, Link):
+        deep_map_mut(func, lnk.first)
+    else:
+        lnk.first = func(lnk.first)
+    if isinstance(lnk.rest, Link):
+        deep_map_mut(func, lnk.rest)
+
+    return lnk
 
 
 def two_list(vals, counts):
@@ -111,6 +157,21 @@ def two_list(vals, counts):
     Link(1, Link(1, Link(3, Link(3, Link(2)))))
     """
     "*** YOUR CODE HERE ***"
+    def append_times(last, value, times):
+        while times > 0:
+            lnk = Link(value, last)
+            last = lnk
+            times -= 1
+        return last
+    
+    last = ()
+    i = len(vals) - 1
+    while i >= 0:
+        lnk = append_times(last, vals[i], counts[i])
+        last = lnk
+        i -= 1
+
+    return last
 
 
 class Link:
